@@ -1,177 +1,138 @@
-# 🗺️ Random Quest
+# Random Quest
 
-> **Your screen gives you a quest. The world is the game.**
+Your screen gives you a quest. The world is the game.
 
-A playful web app that bridges screen time and real-world experience. Open the app, get a randomly generated IRL quest, go do it, earn XP, level up. The game loop is the real world.
+Random Quest is a playful web app that generates short, real-world challenges. You pick a category (or go random), flip a card to reveal the quest, then log completion to earn XP, levels, streaks, and a growing quest history.
 
-Built for the [CodeTV Web Dev Challenge S3E1 — Playful Apps](https://codetv.dev/hackathon/wdc-s3e1-playful-apps), sponsored by Google.
+## How the app works
 
----
+1. Choose a category (or none) on the home screen.
+2. Tap Get Quest to fetch a curated quest from the backend.
+3. Flip the card to reveal details and tags.
+4. Tap I did it, add an optional note, and complete the quest.
+5. The app awards XP, checks for level ups, and applies a daily streak bonus.
+6. Progress is saved locally in the browser and shown in Profile and Log views.
 
-## ✨ Features
+## Features
 
-- 🎲 **Random quest generation** — 50+ hand-curated quests across 5 categories
-- 🤖 **AI-powered quests** — Claude generates unique quests on demand
-- ⭐ **XP & levelling system** — earn XP, level up from Wanderer to Trailblazer
-- 📜 **Quest log** — track every adventure you've completed
-- 📱 **Mobile-first** — designed for one-handed use on the go
-- ⚡ **Zero sign-up** — runs entirely off localStorage, works offline once loaded
+- Random quest generation with category and level filtering
+- AI-generated quests (available at Level 4+)
+- XP, levels, and titles (10 levels)
+- Daily streak bonus (+50 XP for the first quest of the day)
+- Quest log with timestamps and optional notes
+- Profile view with category breakdown and achievements
+- No account required (progress stored in localStorage)
 
----
+## Tech stack
 
-## 🗂️ Quest Categories
+- Frontend: Next.js 14 (App Router), TypeScript, Tailwind CSS, Framer Motion
+- Backend: Flask + CORS
+- AI: OpenRouter (model: anthropic/claude-3-sonnet)
+- Fonts: Space Grotesk (display), Manrope (body), JetBrains Mono (code)
 
-| Category | Description |
-|----------|-------------|
-| 🧭 Explore | Discover something new in your immediate environment |
-| 🌿 Nature | Engage with the natural world |
-| 🤝 Social | Human connection challenges |
-| 🧠 Challenge | Mini mental or physical tasks |
-| 📸 Capture | Document the world around you |
+## Project structure
 
----
+- frontend/ Next.js app
+- backend/ Flask API server
+- backend/data/quests.json Curated quest list
 
-## 🛠️ Tech Stack
-
-### Frontend (`/frontend`)
-- **Next.js 14** (App Router) — TypeScript
-- **Tailwind CSS** — styling
-- **Framer Motion** — quest card animations, XP bar, level-up burst
-- **localStorage** — XP, level, completed quest log (no account needed)
-
-### Backend (`/backend`)
-- **Python 3.11 + FastAPI** — REST API
-- **Claude API** (`claude-sonnet-4`) — AI quest generation
-- **Pydantic** — request/response validation
-- **quests.json** — curated quest pool
-
----
-
-## 🚀 Getting Started
+## Quick start
 
 ### Prerequisites
+
 - Node.js 18+
 - Python 3.11+
-- An [Anthropic API key](https://console.anthropic.com/) (for AI quests)
+
+### Backend
+
+```bash
+cd backend
+pip install -r requirements.txt
+python app.py
+```
+
+The API runs on http://localhost:8000 and exposes endpoints under /api.
 
 ### Frontend
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env.local
-# Set NEXT_PUBLIC_API_URL to your backend URL
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+By default the frontend calls http://localhost:8000/api. To point to a different backend, set:
 
-### Backend
+- NEXT_PUBLIC_API_URL (example: http://localhost:8000/api)
+
+## Environment variables
+
+Backend (AI quests):
+
+- OpenRouter_API_KEY
+- ANTHROPIC_API_KEY (fallback, if OpenRouter_API_KEY is not set)
+
+Example (PowerShell):
+
+```powershell
+$env:OpenRouter_API_KEY = "your-key-here"
+```
+
+Example (macOS/Linux):
 
 ```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env
-# Set ANTHROPIC_API_KEY in .env
-uvicorn main:app --reload
+export OpenRouter_API_KEY="your-key-here"
 ```
 
-API runs at [http://localhost:8000](http://localhost:8000) — docs at `/docs`
+## API
 
----
+Base URL: /api
 
-## 📡 API Endpoints
+- GET /health
+  - Returns status and server timestamp.
+- GET /quest
+  - Optional query params: category, level
+  - Returns a single quest with a weighted random pick based on difficulty and level.
+- POST /generate
+  - Body: { "category": "explore", "level": 4, "location_hint": "downtown" }
+  - Returns a generated quest with a +25 XP bonus.
+- GET /categories
+  - Returns the list of available categories.
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/quest` | `GET` | Returns a random quest. Params: `category`, `level` |
-| `/generate` | `POST` | AI-generated quest via Claude. Body: `{ category, level, location_hint }` |
-| `/categories` | `GET` | Returns all categories with icons and descriptions |
-| `/health` | `GET` | Health check |
+## Leveling and XP
 
----
+XP thresholds and titles:
 
-## 📁 Project Structure
+| Level | Title         | XP Required |
+|------:|---------------|------------:|
+| 1     | Wanderer      | 0           |
+| 2     | Explorer      | 300         |
+| 3     | Adventurer    | 800         |
+| 4     | Pathfinder    | 1,800       |
+| 5     | Trailblazer   | 3,500       |
+| 6     | Legend        | 6,000       |
+| 7     | Mythic        | 10,000      |
+| 8     | Transcendent  | 15,000      |
+| 9     | Cosmic        | 22,000      |
+| 10    | Eternal       | 30,000      |
 
-```
-random-quest/
-├── frontend/
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── page.tsx          # Home — category picker + Get Quest CTA
-│   │   │   ├── quest/page.tsx    # Active quest display
-│   │   │   ├── log/page.tsx      # Completed quest history
-│   │   │   └── profile/page.tsx  # Level, XP, stats
-│   │   ├── components/
-│   │   │   ├── QuestCard.tsx     # Animated flip card
-│   │   │   ├── XPBar.tsx         # Animated XP progress bar
-│   │   │   ├── CategoryPicker.tsx
-│   │   │   └── LevelUpModal.tsx
-│   │   ├── hooks/
-│   │   │   └── usePlayer.ts      # localStorage read/write
-│   │   ├── lib/
-│   │   │   └── api.ts            # fetch() wrappers
-│   │   └── types/
-│   │       └── quest.ts          # TypeScript interfaces
-│   └── package.json
-│
-└── backend/
-    ├── main.py                   # FastAPI entry point
-    ├── routes/
-    │   ├── quests.py             # GET /quest
-    │   └── generate.py           # POST /generate (Claude)
-    ├── models.py                 # Pydantic schemas
-    ├── data/
-    │   └── quests.json           # Quest pool
-    └── requirements.txt
-```
+XP notes:
 
----
+- Quest XP is defined per quest (curated or AI).
+- Daily streak bonus: +50 XP for the first quest completed each day.
+- AI quests add an additional +25 XP bonus on generation.
 
-## 🌍 Deployment
+## Data and storage
 
-| Service | Platform |
-|---------|----------|
-| Frontend | [Vercel](https://vercel.com) |
-| Backend | [Railway](https://railway.app) |
+- Curated quests live in backend/data/quests.json
+- Player progress (XP, level, streak, completed quests, notes) is stored in localStorage
+- Clearing browser storage resets progress
 
-### Environment Variables
+## Deployment
 
-**Frontend (`.env.local`)**
-```
-NEXT_PUBLIC_API_URL=https://your-backend.railway.app
-```
+- Frontend can be deployed to Vercel (set NEXT_PUBLIC_API_URL)
+- Backend can be deployed anywhere that runs Flask (set OpenRouter_API_KEY)
 
-**Backend (`.env`)**
-```
-ANTHROPIC_API_KEY=sk-ant-...
-```
+## License
 
----
-
-## 🎮 Level System
-
-| Level | Title | XP Required | Unlocks |
-|-------|-------|-------------|---------|
-| 1 | Wanderer | 0 | Easy quests |
-| 2 | Explorer | 300 | Medium quests |
-| 3 | Adventurer | 800 | Hard quests |
-| 4 | Pathfinder | 1,800 | AI-generated quests |
-| 5 | Trailblazer | 3,500 | Legendary quests |
-
----
-
-## 🏆 Built For
-
-**[CodeTV Web Dev Challenge S3E1 — Build a Playful App](https://codetv.dev/hackathon/wdc-s3e1-playful-apps)**  
-Sponsored by Google · Deadline: March 23, 2025
-
-> *"Build an app to help people reconnect with the world outside their screens."*
-
----
-
-## 📄 License
-
-MIT — go build something and go outside.
+MIT
